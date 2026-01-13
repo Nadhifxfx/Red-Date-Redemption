@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Date Redemption</title>
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main Menu Screen -->
+        <div id="main-menu" class="screen active">
+            <div class="menu-box">
+                <div class="menu-header">
+                    <h1 data-translate="game_title">RED DATE REDEMPTION</h1>
+                    <p class="subtitle" data-translate="game_subtitle">Akhir bulan mengajarkan arti bertahan</p>
+                </div>
+                <div class="menu-buttons">
+                    <button id="play-button" class="menu-button primary">
+                        <span class="button-icon">▶</span>
+                        <span class="button-text">MULAI BERMAIN</span>
+                    </button>
+                    <button id="tutorial-button" class="menu-button">
+                        <span class="button-icon">?</span>
+                        <span class="button-text">CARA BERMAIN</span>
+                    </button>
+                    <button id="about-button" class="menu-button">
+                        <span class="button-icon">ℹ</span>
+                        <span class="button-text" data-translate="about_button">TENTANG GAME</span>
+                    </button>
+                    <button id="leaderboard-button" class="menu-button">
+                        <span class="button-icon">🏆</span>
+                        <span class="button-text" data-translate="leaderboard_button">LEADERBOARD</span>
+                    </button>
+                    <button id="settings-button" class="menu-button">
+                        <span class="button-icon">⚙</span>
+                        <span class="button-text">PENGATURAN</span>
+                    </button>
+                </div>
+                <div class="menu-footer">
+                    <p>📕⏰😱 Hindari tekanan hidup</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tutorial Screen -->
+        <div id="tutorial-screen" class="screen">
+            <div class="story-box">
+                <h1 data-translate="tutorial_title">CARA BERMAIN</h1>
+                <div class="tutorial-content">
+                    <div class="tutorial-section">
+                        <h3 data-translate="controls_title">🎮 Kontrol</h3>
+                        <p data-translate="controls_text">Gunakan tombol panah <strong>↑ ↓ ← →</strong> untuk menggerakkan karakter</p>
+                    </div>
+                    <div class="tutorial-section">
+                        <h3 data-translate="objective_title">🎯 Tujuan</h3>
+                        <p data-translate="objective_text1">Kumpulkan semua <strong>nasi bungkus (🍱)</strong> yang tersisa di kos-kosan</p>
+                        <p data-translate="objective_text2">Hindari <strong>tekanan hidup (📕⏰😱)</strong> yang mengejar kamu</p>
+                    </div>
+                    <div class="tutorial-section">
+                        <h3 data-translate="powerup_title">⚡ Power Up</h3>
+                        <p data-translate="powerup_text1">Ambil <strong>kopi sachet (☕)</strong> untuk mendapat energi sementara</p>
+                        <p data-translate="powerup_text2">Saat powered, kamu bisa menghadapi tekanan hidup!</p>
+                    </div>
+                    <div class="tutorial-section">
+                        <h3 data-translate="lives_title">❤️ Sistem Nyawa</h3>
+                        <p data-translate="lives_text1">• Setiap level dimulai dengan <strong>3 nyawa</strong> (❤️❤️❤️)</p>
+                        <p data-translate="lives_text2">• Terkena musuh = kehilangan 1 nyawa</p>
+                        <p data-translate="lives_text3">• Nyawa habis = <strong>Game Over</strong> → Kembali ke Level 1</p>
+                    </div>
+                    <div class="tutorial-section">
+                        <h3 data-translate="scoring_title">🏆 Penilaian</h3>
+                        <p data-translate="scoring_text1">• Nasi bungkus: +10 poin</p>
+                        <p data-translate="scoring_text2">• Menghadapi tekanan: +100 poin (saat powered)</p>
+                        <p data-translate="scoring_text3">• Kumpulkan semua untuk lanjut level berikutnya</p>
+                    </div>
+                </div>
+                <button id="back-from-tutorial" class="game-button" data-translate="back_button">KEMBALI KE MENU</button>
+            </div>
+        </div>
+
+        <!-- About Screen -->
+        <div id="about-screen" class="screen">
+            <div class="story-box">
+                <h1 data-translate="about_title">TENTANG GAME</h1>
+                <div class="story-text">
+                    <p data-translate="about_text1"><strong>"Akhir Bulan"</strong> adalah game yang terinspirasi dari pengalaman nyata mahasiswa rantau di Indonesia.</p>
+                    <br>
+                    <p data-translate="about_text2">Akhir bulan adalah masa paling berat bagi mahasiswa rantau. Transfer bulanan sudah habis, tapi masih harus bertahan sampai tanggal 1.</p>
+                    <br>
+                    <p data-translate="about_text3">Game ini menggambarkan perjuangan sehari-hari: mengelola sisa makanan, menghadapi tekanan akademik, dan bertahan dengan segala keterbatasan.</p>
+                    <br>
+                    <p class="highlight" data-translate="about_highlight1">Untuk semua mahasiswa rantau di luar sana:</p>
+                    <p class="highlight" data-translate="about_highlight2">Kalian hebat. Kalian kuat. Kalian bisa.</p>
+                    <br>
+                    <p style="text-align: center; margin-top: 20px; opacity: 0.7;">© 2025 - Game Dev Project</p>
+                </div>
+                <button id="back-from-about" class="game-button" data-translate="back_button">KEMBALI KE MENU</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="screen">
+            <div class="story-box">
+                <h1 data-translate="leaderboard_title">🏆 LEADERBOARD</h1>
+                <p class="leaderboard-subtitle" data-translate="leaderboard_subtitle">Top 10 Skor Tertinggi</p>
+                <div id="leaderboard-list" class="leaderboard-content">
+                    <!-- Leaderboard akan diisi via JavaScript -->
+                </div>
+                <button id="back-from-leaderboard" class="game-button" data-translate="back_button">KEMBALI KE MENU</button>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="screen">
+            <div class="story-box">
+                <h1 data-translate="settings_title">⚙ PENGATURAN</h1>
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="language-select">🌐 <span data-translate="language_label">Bahasa / Language</span></label>
+                        <select id="language-select" class="setting-select">
+                            <option value="id">Bahasa Indonesia</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="volume-slider" data-translate="volume_label">🔊 Volume Suara</label>
+                        <div class="volume-control">
+                            <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="70">
+                            <span id="volume-value" class="volume-value">70%</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-info">
+                        <p data-translate="settings_tip1">💡 <strong>Tips:</strong> Pengaturan akan disimpan otomatis</p>
+                        <p data-translate="settings_tip2">🔊 Set volume ke 0% untuk menonaktifkan suara</p>
+                    </div>
+                </div>
+                <button id="back-from-settings" class="game-button" data-translate="back_button">KEMBALI KE MENU</button>
+            </div>
+        </div>
+
+        <!-- Opening Screen -->
+        <div id="opening-screen" class="screen">
+            <div class="story-box">
+                <h1 data-translate="opening_title">RED DATE REDEMPTION</h1>
+                <div class="story-text">
+                    <p data-translate="opening_text1">Kamu adalah mahasiswa rantau yang hidup di kos sempit.</p>
+                    <p data-translate="opening_text2">Hari ini tanggal 28. Transfer bulanan sudah habis.</p>
+                    <p data-translate="opening_text3">Di kulkas hanya tersisa beberapa nasi bungkus dan uang receh di dompet.</p>
+                    <p data-translate="opening_text4">Sementara itu, deadline tugas, ujian, dan tekanan akademik terus menghantui.</p>
+                    <br>
+                    <p class="highlight" data-translate="opening_highlight1">Kamu harus bertahan sampai tanggal 1 besok.</p>
+                    <p class="highlight" data-translate="opening_highlight2">Kumpulkan semua yang tersisa tanpa tertangkap tekanan hidup.</p>
+                </div>
+                <button id="start-button" class="game-button" data-translate="start_game_button">MULAI BERTAHAN</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="game-header">
+                <div class="info-box">
+                    <span class="label" data-translate="score_label">SKOR:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="info-box">
+                    <span class="label" data-translate="level_label">LEVEL:</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="info-box lives-box">
+                    <span id="lives">❤️❤️❤️</span>
+                </div>
+                <div class="info-box timer-box">
+                    <span class="label" data-translate="timer_label">WAKTU:</span>
+                    <span id="timer">60</span>
+                </div>
+                <button id="pause-button" class="icon-button" title="Pengaturan / Pause">
+                    <span>⚙️</span>
+                </button>
+            </div>
+            <canvas id="game-canvas"></canvas>
+            
+            <!-- Pause Overlay -->
+            <div id="pause-overlay" class="overlay">
+                <div class="pause-menu">
+                    <h2>⏸️ <span data-translate="pause_title">GAME DIJEDA</span></h2>
+                    <div class="pause-settings">
+                        <div class="setting-item-compact">
+                            <label for="pause-language">🌐 <span data-translate="language_label">Bahasa</span>:</label>
+                            <select id="pause-language" class="setting-select-compact">
+                                <option value="id">Indonesia</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        <div class="setting-item-compact">
+                            <label for="pause-volume">🔊 Volume:</label>
+                            <div class="volume-control-compact">
+                                <input type="range" id="pause-volume" class="volume-slider-compact" min="0" max="100" value="70">
+                                <span id="pause-volume-value" class="volume-value-compact">70%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pause-buttons">
+                        <button id="resume-button" class="game-button" data-translate="resume_button">▶️ LANJUTKAN</button>
+                        <button id="restart-from-pause" class="game-button secondary" data-translate="restart_button">🔄 MULAI ULANG</button>
+                        <button id="menu-from-pause" class="game-button secondary" data-translate="menu_button">🏠 KE MENU</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="game-controls">
+                <p data-translate="game_controls">Gunakan tombol ↑ ↓ ← → untuk bergerak</p>
+                <div class="game-legend">
+                    <span data-translate="legend_player">😊 Kamu</span>
+                    <span data-translate="legend_food">🍱 Makanan</span>
+                    <span data-translate="legend_coffee">☕ Kopi</span>
+                    <span data-translate="legend_enemy">📕⏰😱 Musuh</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="screen">
+            <div class="story-box">
+                <h1 data-translate="gameover_title">TERTANGKAP</h1>
+                <div class="story-text">
+                    <p id="gameover-message" data-translate="gameover_text1">Tekanan hidup terlalu berat...</p>
+                    <p data-translate="gameover_text2">Kamu kalah oleh deadline dan kekhawatiran.</p>
+                    <p data-translate="gameover_text3">Kadang, hidup mahasiswa rantau memang tidak mudah.</p>
+                    <br>
+                    <p class="highlight" data-translate="gameover_highlight1">Tapi ingat, besok adalah hari baru.</p>
+                    <p class="highlight" data-translate="gameover_highlight2">Kamu selalu bisa mencoba lagi.</p>
+                </div>
+                <div class="final-score-box">
+                    <p><span data-translate="final_score_label">SKOR AKHIR:</span> <span id="final-score">0</span></p>
+                </div>
+                <button id="restart-button" class="game-button" data-translate="try_again_button">COBA LAGI</button>
+            </div>
+        </div>
+
+        <!-- Win Screen -->
+        <div id="win-screen" class="screen">
+            <div class="story-box">
+                <h1 data-translate="win_title">BERTAHAN!</h1>
+                <div class="story-text">
+                    <p data-translate="win_text1">Kamu berhasil mengumpulkan semua yang tersisa!</p>
+                    <p data-translate="win_text2">Besok adalah tanggal 1. Transfer akan masuk pagi ini.</p>
+                    <p data-translate="win_text3">Kamu berhasil melewati akhir bulan yang berat.</p>
+                    <br>
+                    <div id="bonus-info" class="bonus-display"></div>
+                    <br>
+                    <p class="highlight" data-translate="win_highlight1">Ini bukan tentang menang atau kalah.</p>
+                    <p class="highlight" data-translate="win_highlight2">Ini tentang bertahan di tengah keterbatasan.</p>
+                    <p class="highlight" data-translate="win_highlight3">Kamu kuat. Kamu bisa.</p>
+                </div>
+                <div class="final-score-box">
+                    <p><span data-translate="final_score_label">SKOR AKHIR:</span> <span id="win-score">0</span></p>
+                </div>
+                <button id="continue-button" class="game-button" data-translate="continue_button">LEVEL SELANJUTNYA</button>
+                <button id="restart-win-button" class="game-button secondary" data-translate="play_again_button">MAIN LAGI</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
