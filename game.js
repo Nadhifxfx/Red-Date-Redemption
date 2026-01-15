@@ -18,6 +18,39 @@ const CONFIG = {
 };
 
 // ==============================================
+// ASSETS LOADING
+// ==============================================
+
+const ASSET_PATHS = {
+    idle: { prefix: 'Aset/berdiri/Idle (', count: 16, suffix: ').png' },
+    walk: { prefix: 'Aset/jalan/Walk (', count: 13, suffix: ').png' },
+    dead: { prefix: 'Aset/mati/Dead (', count: 17, suffix: ').png' }
+};
+
+const assets = {
+    idle: [],
+    walk: [],
+    dead: []
+};
+
+function loadAssets() {
+    const load = (type, config) => {
+        for (let i = 1; i <= config.count; i++) {
+            const img = new Image();
+            img.src = config.prefix + i + config.suffix;
+            assets[type].push(img);
+        }
+    };
+    
+    load('idle', ASSET_PATHS.idle);
+    load('walk', ASSET_PATHS.walk);
+    load('dead', ASSET_PATHS.dead);
+}
+
+// Load assets immediately
+loadAssets();
+
+// ==============================================
 // GAME SETTINGS (Configurable)
 // ==============================================
 
@@ -571,7 +604,9 @@ const gameState = {
     collectedItems: 0,
     animationFrame: null,
     lastMoveTime: 0,
-    enemyMoveTime: 0
+    enemyMoveTime: 0,
+    isDying: false,
+    deathStartTime: 0
 };
 
 // ==============================================
@@ -840,32 +875,64 @@ function drawItems() {
 
 function drawPlayer() {
     const player = gameState.player;
-    // Use renderX and renderY for smooth interpolation
     const centerX = player.renderX * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
     const centerY = player.renderY * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
 
-    // Background circle untuk membedakan player
-    ctx.fillStyle = gameState.isPowered ? '#4a9eff' : '#ffd700';
-    ctx.shadowColor = gameState.isPowered ? '#4a9eff' : '#ffd700';
-    ctx.shadowBlur = gameState.isPowered ? 20 : 12;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    const now = performance.now();
+    let currentImg;
+    let size = CONFIG.TILE_SIZE * 2; // Making player slightly larger for better visibility
 
-    // Border circle
-    ctx.strokeStyle = gameState.isPowered ? '#6ab0ff' : '#ffed4e';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
-    ctx.stroke();
+    if (gameState.isDying) {
+        // Death Animation
+        const elapsed = now - gameState.deathStartTime;
+        const frameDuration = 100;
+        let frameIndex = Math.floor(elapsed / frameDuration);
+        if (frameIndex >= assets.dead.length) frameIndex = assets.dead.length - 1;
+        currentImg = assets.dead[frameIndex];
+    } else {
+        // Normal State logic
+        const isMoving = (Math.abs(player.targetX - player.renderX) > 0.05 || Math.abs(player.targetY - player.renderY) > 0.05);
+        
+        if (isMoving) {
+            // Run/Walk
+            const frameDuration = 60; 
+            const frameIndex = Math.floor(now / frameDuration) % assets.walk.length;
+            currentImg = assets.walk[frameIndex];
+        } else {
+            // Idle
+            const frameDuration = 100;
+            const frameIndex = Math.floor(now / frameDuration) % assets.idle.length;
+            currentImg = assets.idle[frameIndex];
+        }
+    }
 
-    // Player icon - menggunakan emoji wajah tersenyum yang lebih terlihat
-    ctx.font = 'bold 20px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText('😊', centerX, centerY);
+    ctx.save();
+    ctx.translate(centerX, centerY);
+
+    // Add glow if powered
+    if (gameState.isPowered && !gameState.isDying) {
+        ctx.shadowColor = '#4a9eff';
+        ctx.shadowBlur = 15;
+    }
+
+    // Flip if facing left
+    if (player.direction === 'left') {
+        ctx.scale(-1, 1);
+    }
+
+    if (currentImg && currentImg.complete && currentImg.naturalWidth !== 0) {
+        // Offset Y slightly to align feet with tile if needed, usually just center
+        // Assumingsprites are centered.
+        ctx.drawImage(currentImg, -size/2, -size/2, size, size);
+    } else {
+        // Fallback: Emoji if assets fail
+         ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('😊', 0, 0);
+    }
+
+    ctx.restore();
 }
 
 function drawEnemies() {
@@ -951,6 +1018,7 @@ function canMove(x, y) {
 
 function movePlayer(direction) {
     const player = gameState.player;
+    player.direction = direction; // Update facing direction
     let newX = player.x;
     let newY = player.y;
 
@@ -1141,31 +1209,40 @@ function handleInput(currentTime) {
 function gameLoop(currentTime) {
     if (!gameState.isRunning) return;
 
-    handleInput(currentTime);
+    if (gameState.isDying) {
+        // While dying, we only check for animation completion
+        // Death animation length: 17 frames * 100ms = 1700ms
+        if (currentTime - gameState.deathStartTime > 1700) {
+            handleDeathComplete();
+            if (!gameState.isRunning) return; // If game over
+        }
+    } else {
+        handleInput(currentTime);
 
-    // Smooth player interpolation
-    const player = gameState.player;
-    player.renderX += (player.targetX - player.renderX) * CONFIG.INTERPOLATION_SPEED;
-    player.renderY += (player.targetY - player.renderY) * CONFIG.INTERPOLATION_SPEED;
+        // Smooth player interpolation
+        const player = gameState.player;
+        player.renderX += (player.targetX - player.renderX) * CONFIG.INTERPOLATION_SPEED;
+        player.renderY += (player.targetY - player.renderY) * CONFIG.INTERPOLATION_SPEED;
 
-    // Snap to target if very close
-    if (Math.abs(player.renderX - player.targetX) < 0.01) player.renderX = player.targetX;
-    if (Math.abs(player.renderY - player.targetY) < 0.01) player.renderY = player.targetY;
-
-    // Smooth enemy interpolation
-    gameState.enemies.forEach(enemy => {
-        enemy.renderX += (enemy.targetX - enemy.renderX) * CONFIG.INTERPOLATION_SPEED;
-        enemy.renderY += (enemy.targetY - enemy.renderY) * CONFIG.INTERPOLATION_SPEED;
-        
         // Snap to target if very close
-        if (Math.abs(enemy.renderX - enemy.targetX) < 0.01) enemy.renderX = enemy.targetX;
-        if (Math.abs(enemy.renderY - enemy.targetY) < 0.01) enemy.renderY = enemy.targetY;
-    });
+        if (Math.abs(player.renderX - player.targetX) < 0.01) player.renderX = player.targetX;
+        if (Math.abs(player.renderY - player.targetY) < 0.01) player.renderY = player.targetY;
 
-    // Move enemies
-    if (currentTime - gameState.enemyMoveTime > CONFIG.ENEMY_SPEED) {
-        moveEnemies();
-        gameState.enemyMoveTime = currentTime;
+        // Smooth enemy interpolation
+        gameState.enemies.forEach(enemy => {
+            enemy.renderX += (enemy.targetX - enemy.renderX) * CONFIG.INTERPOLATION_SPEED;
+            enemy.renderY += (enemy.targetY - enemy.renderY) * CONFIG.INTERPOLATION_SPEED;
+            
+            // Snap to target if very close
+            if (Math.abs(enemy.renderX - enemy.targetX) < 0.01) enemy.renderX = enemy.targetX;
+            if (Math.abs(enemy.renderY - enemy.targetY) < 0.01) enemy.renderY = enemy.targetY;
+        });
+
+        // Move enemies
+        if (currentTime - gameState.enemyMoveTime > CONFIG.ENEMY_SPEED) {
+            moveEnemies();
+            gameState.enemyMoveTime = currentTime;
+        }
     }
 
     render();
@@ -1201,27 +1278,64 @@ function startGame() {
 }
 
 function loseLife() {
+    if (gameState.isDying) return; // Already dying
+
+    gameState.isDying = true;
+    gameState.deathStartTime = performance.now();
+    playSound('gameover'); // Play sound immediately on hit
+    
+    // Logic for life decrement and game over happens in handleDeathComplete
+}
+
+function handleDeathComplete() {
+    gameState.isDying = false;
     gameState.lives--;
     
     if (gameState.lives <= 0) {
         // No more lives - game over
         gameOver();
     } else {
-        // Still have lives - stay at current position
-        // Reset power-up if active
+        // Still have lives - reset for next try
         gameState.isPowered = false;
         gameState.status = translations[gameSettings.language].status_normal;
         if (gameState.powerTimer) {
             clearTimeout(gameState.powerTimer);
         }
         
-        // Brief invulnerability by making player invisible for a moment
-        playSound('gameover');
-        updateUI();
+        // Reset positions
+        resetPositions(); 
         
-        // Continue game without interruption
+        updateUI();
     }
 }
+
+function resetPositions() {
+    gameState.player.x = 1;
+    gameState.player.y = 1;
+    gameState.player.targetX = 1;
+    gameState.player.targetY = 1;
+    gameState.player.renderX = 1;
+    gameState.player.renderY = 1;
+    gameState.player.direction = 'right';
+
+    // Respawn enemies at corners
+    const corners = [
+        {x: CONFIG.CANVAS_WIDTH - 2, y: 1},
+        {x: CONFIG.CANVAS_WIDTH - 2, y: CONFIG.CANVAS_HEIGHT - 2},
+        {x: 1, y: CONFIG.CANVAS_HEIGHT - 2}
+    ];
+
+    gameState.enemies.forEach((enemy, index) => {
+        const corner = corners[index % corners.length];
+        enemy.x = corner.x;
+        enemy.y = corner.y;
+        enemy.targetX = corner.x;
+        enemy.targetY = corner.y;
+        enemy.renderX = corner.x;
+        enemy.renderY = corner.y;
+    });
+}
+
 
 function gameOver() {
     gameState.isRunning = false;
