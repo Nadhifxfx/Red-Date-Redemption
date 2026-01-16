@@ -22,28 +22,43 @@ const CONFIG = {
 // ==============================================
 
 const ASSET_PATHS = {
-    idle: { prefix: 'Aset/berdiri/Idle (', count: 16, suffix: ').png' },
-    walk: { prefix: 'Aset/jalan/Walk (', count: 13, suffix: ').png' },
-    dead: { prefix: 'Aset/mati/Dead (', count: 17, suffix: ').png' }
+    idle: { prefix: 'Aset/Idle (', count: 10, suffix: ').png' },
+    run: { prefix: 'Aset/Run (', count: 8, suffix: ').png' },
+    hurt: { prefix: 'Aset/Hurt (', count: 8, suffix: ').png' },
+    dead: { prefix: 'Aset/Dead (', count: 10, suffix: ').png' }
 };
 
 const assets = {
     idle: [],
-    walk: [],
+    run: [],
+    hurt: [],
     dead: []
 };
 
 function loadAssets() {
+    const makeImageWithFallback = (primarySrc, fallbackSrc) => {
+        const img = new Image();
+        img.onerror = () => {
+            // Support both Vite (public/ served at root) and direct file opening
+            if (img.src && fallbackSrc && !img.src.includes(fallbackSrc)) {
+                img.src = encodeURI(fallbackSrc);
+            }
+        };
+        img.src = encodeURI(primarySrc);
+        return img;
+    };
+
     const load = (type, config) => {
         for (let i = 1; i <= config.count; i++) {
-            const img = new Image();
-            img.src = config.prefix + i + config.suffix;
-            assets[type].push(img);
+            const primary = `${config.prefix}${i}${config.suffix}`;
+            const fallback = `public/${primary}`;
+            assets[type].push(makeImageWithFallback(primary, fallback));
         }
     };
-    
+
     load('idle', ASSET_PATHS.idle);
-    load('walk', ASSET_PATHS.walk);
+    load('run', ASSET_PATHS.run);
+    load('hurt', ASSET_PATHS.hurt);
     load('dead', ASSET_PATHS.dead);
 }
 
@@ -606,7 +621,9 @@ const gameState = {
     lastMoveTime: 0,
     enemyMoveTime: 0,
     isDying: false,
-    deathStartTime: 0
+    deathStartTime: 0,
+    isHurt: false,
+    hurtStartTime: 0
 };
 
 // ==============================================
@@ -883,12 +900,19 @@ function drawPlayer() {
     let size = CONFIG.TILE_SIZE * 2; // Making player slightly larger for better visibility
 
     if (gameState.isDying) {
-        // Death Animation
+        // Dead Animation (when no lives left)
         const elapsed = now - gameState.deathStartTime;
         const frameDuration = 100;
         let frameIndex = Math.floor(elapsed / frameDuration);
         if (frameIndex >= assets.dead.length) frameIndex = assets.dead.length - 1;
         currentImg = assets.dead[frameIndex];
+    } else if (gameState.isHurt) {
+        // Hurt Animation (when taking damage but still alive)
+        const elapsed = now - gameState.hurtStartTime;
+        const frameDuration = 70;
+        let frameIndex = Math.floor(elapsed / frameDuration);
+        if (frameIndex >= assets.hurt.length) frameIndex = assets.hurt.length - 1;
+        currentImg = assets.hurt[frameIndex];
     } else {
         // Normal State logic
         const isMoving = (Math.abs(player.targetX - player.renderX) > 0.05 || Math.abs(player.targetY - player.renderY) > 0.05);
@@ -896,8 +920,8 @@ function drawPlayer() {
         if (isMoving) {
             // Run/Walk
             const frameDuration = 60; 
-            const frameIndex = Math.floor(now / frameDuration) % assets.walk.length;
-            currentImg = assets.walk[frameIndex];
+            const frameIndex = Math.floor(now / frameDuration) % assets.run.length;
+            currentImg = assets.run[frameIndex];
         } else {
             // Idle
             const frameDuration = 100;
@@ -910,7 +934,7 @@ function drawPlayer() {
     ctx.translate(centerX, centerY);
 
     // Add glow if powered
-    if (gameState.isPowered && !gameState.isDying) {
+    if (gameState.isPowered && !gameState.isDying && !gameState.isHurt) {
         ctx.shadowColor = '#4a9eff';
         ctx.shadowBlur = 15;
     }
@@ -1210,11 +1234,18 @@ function gameLoop(currentTime) {
     if (!gameState.isRunning) return;
 
     if (gameState.isDying) {
-        // While dying, we only check for animation completion
-        // Death animation length: 17 frames * 100ms = 1700ms
-        if (currentTime - gameState.deathStartTime > 1700) {
+        // While dead-animating, we only check for animation completion
+        const duration = assets.dead.length * 100;
+        if (currentTime - gameState.deathStartTime > duration) {
             handleDeathComplete();
             if (!gameState.isRunning) return; // If game over
+        }
+    } else if (gameState.isHurt) {
+        // While hurt-animating, we only check for animation completion
+        const duration = assets.hurt.length * 70;
+        if (currentTime - gameState.hurtStartTime > duration) {
+            handleHurtComplete();
+            if (!gameState.isRunning) return;
         }
     } else {
         handleInput(currentTime);
@@ -1268,6 +1299,10 @@ function startGame() {
     gameState.isRunning = true;
     gameState.lastMoveTime = 0;
     gameState.enemyMoveTime = 0;
+    gameState.isDying = false;
+    gameState.deathStartTime = 0;
+    gameState.isHurt = false;
+    gameState.hurtStartTime = 0;
 
     updateUI();
     showScreen('game-screen');
@@ -1278,13 +1313,38 @@ function startGame() {
 }
 
 function loseLife() {
-    if (gameState.isDying) return; // Already dying
+    if (gameState.isDying || gameState.isHurt) return; // Already in a damage animation
 
-    gameState.isDying = true;
-    gameState.deathStartTime = performance.now();
+    // Hurt when taking damage but still has lives left; Dead only when lives run out
+    const now = performance.now();
+    if (gameState.lives <= 1) {
+        gameState.isDying = true;
+        gameState.deathStartTime = now;
+    } else {
+        gameState.isHurt = true;
+        gameState.hurtStartTime = now;
+    }
     playSound('gameover'); // Play sound immediately on hit
-    
-    // Logic for life decrement and game over happens in handleDeathComplete
+}
+
+function handleHurtComplete() {
+    gameState.isHurt = false;
+    gameState.lives--;
+
+    if (gameState.lives <= 0) {
+        // Safety: if lives hit 0 during hurt flow, treat as game over
+        gameOver();
+        return;
+    }
+
+    gameState.isPowered = false;
+    gameState.status = translations[gameSettings.language].status_normal;
+    if (gameState.powerTimer) {
+        clearTimeout(gameState.powerTimer);
+    }
+
+    resetPositions();
+    updateUI();
 }
 
 function handleDeathComplete() {
