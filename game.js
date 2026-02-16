@@ -39,8 +39,9 @@ function loadAssets() {
     const makeImageWithFallback = (primarySrc, fallbackSrc) => {
         const img = new Image();
         img.onerror = () => {
-            // Support both Vite (public/ served at root) and direct file opening
-            if (img.src && fallbackSrc && !img.src.includes(fallbackSrc)) {
+            // Vite serves files inside public/ at the site root ("/"),
+            // while direct file opening may require relative paths.
+            if (fallbackSrc) {
                 img.src = encodeURI(fallbackSrc);
             }
         };
@@ -51,7 +52,7 @@ function loadAssets() {
     const load = (type, config) => {
         for (let i = 1; i <= config.count; i++) {
             const primary = `${config.prefix}${i}${config.suffix}`;
-            const fallback = `public/${primary}`;
+            const fallback = `/${primary}`;
             assets[type].push(makeImageWithFallback(primary, fallback));
         }
     };
